@@ -76,14 +76,14 @@ RUN apt-get update && apt-get -y install \
     python-twisted-core \
     python-zope.interface \
     ros-indigo-rosauth \
+    dkms \
     && rm -rf /var/lib/apt/lists/*
 
 # 1. h5
 # 2. Devel Essentials
 # 3. Autoware Deps
+
 RUN apt-get update && apt-get --no-install-recommends -y install \
-    libhdf5-dev \
-    python-h5py \
     git \
     ssh \
     vim \
@@ -93,6 +93,14 @@ RUN apt-get update && apt-get --no-install-recommends -y install \
     libcanberra-gtk-module \
     gnome-terminal \
     usbutils \
+    python3-apt \
+    python3-pycurl \
+    python3-gi \
+    gir1.2-gtk-3.0 \
+    python3-aptdaemon.gtk3widgets \
+    software-properties-common \
+    ubuntu-drivers-common \
+    libgtk2-perl \
     && rm -rf /var/lib/apt/lists/*
 
 # NOTE: install pip with easy_install rather than apt-get, so that
@@ -106,8 +114,11 @@ RUN easy_install pip && pip install cython==0.25.2
 COPY ./debs /debs
 RUN dpkg -i /debs/linux-can.deb 
 
-# AutonomouStuff Packages
-#RUN dpkg -i /debs/ros-indigo-lusb_1.0.9-0trusty-20171020-102527-0400_amd64.deb
+# AutonomouStuff Packages and dependencies
+RUN dpkg -i /debs/python3-software-properties_0.96.20.8_all.deb
+RUN dpkg -i /debs/software-properties-gtk_0.96.20.8_all.deb
+RUN dpkg -i /debs/software-properties-common_0.96.20.8_all.deb
+RUN dpkg -i /debs/linuxcan-dkms_5.26.679-0ubuntu0~ppa1_amd64.deb
 
 ######
 # Add basic user
@@ -143,7 +154,7 @@ RUN echo "export QT_X11_NO_MITSHM=1" >> /home/$USERNAME/.bashrc
 RUN mkdir /home/$USERNAME/.rviz
 RUN ln -s /home/$USERNAME/commander/rviz/default.rviz /home/$USERNAME/.rviz/default.rviz
 
-WORKDIR /home/$USERNAME/
+WORKDIR /home/$USERNAME/pacifica-dbw-ros
 
 ## setup entrypoint
 ##COPY ./ros_entrypoint.sh /
