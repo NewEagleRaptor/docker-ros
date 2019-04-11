@@ -1,5 +1,19 @@
-# neweagle/ros - This is the base ROS runtime image.
+# voyage/ros - This is the base ROS runtime image.
 
+######
+# Section 1: "Includes"
+#
+# These are other Dockerfiles that we'd like to
+# include, but docker doesn't do that.  So we've cut and pasted them,
+# faithfully and commented out their "FROM".
+# DO NOT modify, edit, etc unless updating to a newer version
+
+######################################################################
+#INCLUDE https://github.com/osrf/docker_images/blob/master/ros/indigo/indigo-ros-core/Dockerfile
+######################################################################
+# This is an auto generated Dockerfile for ros:indigo-ros-core
+# generated from templates/docker_images/create_ros_core_image.Dockerfile.em
+# generated on 2017-01-27 02:33:52 +0000
 FROM ubuntu:trusty
 
 # setup environment
@@ -29,15 +43,39 @@ RUN apt-get update && apt-get install -y \
     ros-indigo-ros-core=1.1.6-0* \
     && rm -rf /var/lib/apt/lists/*
 
+######################################################################
+# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/indigo/indigo-ros-base/Dockerfile
+######################################################################
+# This is an auto generated Dockerfile for ros:indigo-ros-base
+# generated from templates/docker_images/create_ros_image.Dockerfile.em
+# generated on 2017-01-27 02:33:52 +0000
+##FROM ros:indigo-ros-core
+
 # install ros packages
 RUN apt-get update && apt-get install -y \
     ros-indigo-ros-base=1.1.6-0* \
     && rm -rf /var/lib/apt/lists/*
 
+######################################################################
+# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/indigo/indigo-desktop/Dockerfile
+######################################################################
+# This is an auto generated Dockerfile for ros:indigo-desktop
+# generated from templates/docker_images/create_ros_image.Dockerfile.em
+# generated on 2017-01-27 02:33:52 +0000
+##FROM ros:indigo-ros-base
+
 # install ros packages
 RUN apt-get update && apt-get install -y \
     ros-indigo-desktop=1.1.6-0* \
     && rm -rf /var/lib/apt/lists/*
+
+#####################################################################
+# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/indigo/indigo-desktop-full/Dockerfile
+#####################################################################
+# This is an auto generated Dockerfile for ros:indigo-desktop-full
+# generated from templates/docker_images/create_ros_image.Dockerfile.em
+# generated on 2017-01-27 02:33:52 +0000
+#FROM osrf/ros:indigo-desktop
 
 # install ros packages
 RUN apt-get update && apt-get install -y \
@@ -49,17 +87,28 @@ RUN apt-get update && apt-get install -y \
 # Section 2: Custom
 #
 # Everthing above this point gives us a clean base image, and everything below
-# is specific to New Eagle.
+# is voyage specific setup.
+
+######
+# First: do the rest of the cuda install (and apsell first, because it screws
+# up dependencies for some reason)
+##RUN apt-get update && apt-get install -y aspell
 
 # ROS dependencies
 RUN apt-get update && apt-get -y install \
     ros-indigo-desktop-full \
+    ros-indigo-nmea-msgs \
+    ros-indigo-nmea-navsat-driver \
+    ros-indigo-sound-play \
     ros-indigo-jsk-visualization \
     ros-indigo-qglv-toolkit \
     ros-indigo-joy \
+    ros-indigo-libsensors-monitor \
     ros-indigo-can-msgs \
+    ros-indigo-um7 \
     python-rosinstall \
     python-rosinstall-generator \
+    libnlopt-dev \
     freeglut3-dev \
     qtbase5-dev \
     libqt5opengl5-dev \
@@ -75,15 +124,24 @@ RUN apt-get update && apt-get -y install \
     python-twisted-bin \
     python-twisted-core \
     python-zope.interface \
-    ros-indigo-rosauth \
-    dkms \
+    python3-apt \
+    python3-pycurl \
+    python3-gi \
+    gir1.2-gtk-3.0 \
+    python3-aptdaemon.gtk3widgets \
+    linux-headers-generic \  
+    software-properties-common \  
+    ubuntu-drivers-common \
+    libgtk2-perl \
+    dkms \ 
     && rm -rf /var/lib/apt/lists/*
 
 # 1. h5
 # 2. Devel Essentials
 # 3. Autoware Deps
-
 RUN apt-get update && apt-get --no-install-recommends -y install \
+    libhdf5-dev \
+    python-h5py \
     git \
     ssh \
     vim \
@@ -93,26 +151,15 @@ RUN apt-get update && apt-get --no-install-recommends -y install \
     libcanberra-gtk-module \
     gnome-terminal \
     usbutils \
-    python3-apt \
-    python3-pycurl \
-    python3-gi \
-    gir1.2-gtk-3.0 \
-    python3-aptdaemon.gtk3widgets \
-    software-properties-common \
-    ubuntu-drivers-common \
-    libgtk2-perl \
     && rm -rf /var/lib/apt/lists/*
 
-# NOTE: install pip with easy_install rather than apt-get, so that
-# we can update it with itself later
 # Cython must be installed as a seperate layer
 RUN easy_install pip && pip install cython==0.25.2
 
 # local packages
-
-# might need linux_can package?
 COPY ./debs /debs
-RUN dpkg -i /debs/linux-can.deb 
+RUN dpkg -i /debs/libsbp_2.2.12-1_amd64.deb
+RUN dpkg -i /debs/linux-can.deb
 
 # AutonomouStuff Packages and dependencies
 RUN dpkg -i /debs/python3-software-properties_0.96.20.8_all.deb
@@ -145,14 +192,13 @@ RUN rosdep update
 ###
 # Setup .bashrc
 RUN echo "source /opt/ros/indigo/setup.bash" >> /home/$USERNAME/.bashrc
-RUN echo "source /home/$USERNAME/commander/devel/setup.bash" >> /home/$USERNAME/.bashrc
-RUN echo "if [[ \"\$PRIME_SELECT_INTEL\" -eq 1 ]]; then sudo prime-select intel; fi" >> /home/$USERNAME/.bashrc
+RUN echo "source /home/$USERNAME/pacifica-dbw-ros/devel/setup.bash" >> /home/$USERNAME/.bashrc
 #Fix for autoware qt and X server errors
 RUN echo "export QT_X11_NO_MITSHM=1" >> /home/$USERNAME/.bashrc
 
 # setup rviz defaults
 RUN mkdir /home/$USERNAME/.rviz
-RUN ln -s /home/$USERNAME/commander/rviz/default.rviz /home/$USERNAME/.rviz/default.rviz
+RUN ln -s /home/$USERNAME/pacifica-dbw-ros/rviz/default.rviz /home/$USERNAME/.rviz/default.rviz
 
 WORKDIR /home/$USERNAME/pacifica-dbw-ros
 
