@@ -1,4 +1,4 @@
-# voyage/ros - This is the base ROS runtime image.
+# neweagle/docker-ros - This is the base ROS runtime image.
 
 ######
 # Section 1: "Includes"
@@ -9,22 +9,33 @@
 # DO NOT modify, edit, etc unless updating to a newer version
 
 ######################################################################
-#INCLUDE https://github.com/osrf/docker_images/blob/master/ros/indigo/indigo-ros-core/Dockerfile
+#INCLUDE https://github.com/osrf/docker_images/blob/master/ros/kinetic/kinetic-ros-core/Dockerfile
 ######################################################################
-# This is an auto generated Dockerfile for ros:indigo-ros-core
+# This is an auto generated Dockerfile for ros:kinetic-ros-core
 # generated from templates/docker_images/create_ros_core_image.Dockerfile.em
 # generated on 2017-01-27 02:33:52 +0000
 FROM ubuntu:xenial
 
 # setup environment
+RUN apt-get clean && apt-get update && apt-get install -y locales
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 
+# install packages
+RUN apt-get update && apt-get install -q -y \
+    dirmngr \
+    gnupg2 \
+    lsb-release \
+    && rm -rf /var/lib/apt/lists/*
+
 # setup keys
-RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 421C365BD9FF1F717815A3895523BAEEB01FA116
+##RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 421C365BD9FF1F717815A3895523BAEEB01FA116
+  RUN apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
 
 # setup sources.list
-RUN echo "deb http://packages.ros.org/ros/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list
+##RUN echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list
+##RUN echo "deb http://packages.ros.org/ros/ubuntu xenial main" > /etc/apt/sources.list.d/ros-latest.list
+  RUN echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list
 
 # install bootstrap tools
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -38,48 +49,48 @@ RUN rosdep init \
     && rosdep update
 
 # install ros packages
-ENV ROS_DISTRO indigo
+ENV ROS_DISTRO kinetic
 RUN apt-get update && apt-get install -y \
-    ros-indigo-ros-core=1.1.6-0* \
+    ros-kinetic-ros-core=1.3.2-0* \
     && rm -rf /var/lib/apt/lists/*
 
 ######################################################################
-# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/indigo/indigo-ros-base/Dockerfile
+# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/kinetic/kinetic-ros-base/Dockerfile
 ######################################################################
-# This is an auto generated Dockerfile for ros:indigo-ros-base
+# This is an auto generated Dockerfile for ros:kinetic-ros-base
 # generated from templates/docker_images/create_ros_image.Dockerfile.em
 # generated on 2017-01-27 02:33:52 +0000
-##FROM ros:indigo-ros-core
+##FROM ros:kinetic-ros-core
 
 # install ros packages
 RUN apt-get update && apt-get install -y \
-    ros-indigo-ros-base=1.1.6-0* \
+    ros-kinetic-ros-base=1.3.2-0* \
     && rm -rf /var/lib/apt/lists/*
 
 ######################################################################
-# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/indigo/indigo-desktop/Dockerfile
+# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/kinetic/kinetic-desktop/Dockerfile
 ######################################################################
-# This is an auto generated Dockerfile for ros:indigo-desktop
+# This is an auto generated Dockerfile for ros:kinetic-desktop
 # generated from templates/docker_images/create_ros_image.Dockerfile.em
 # generated on 2017-01-27 02:33:52 +0000
-##FROM ros:indigo-ros-base
+##FROM ros:kinetic-ros-base
 
 # install ros packages
 RUN apt-get update && apt-get install -y \
-    ros-indigo-desktop=1.1.6-0* \
+    ros-kinetic-desktop=1.3.2-0* \
     && rm -rf /var/lib/apt/lists/*
 
 #####################################################################
-# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/indigo/indigo-desktop-full/Dockerfile
+# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/kinetic/kinetic-desktop-full/Dockerfile
 #####################################################################
-# This is an auto generated Dockerfile for ros:indigo-desktop-full
+# This is an auto generated Dockerfile for ros:kinetic-desktop-full
 # generated from templates/docker_images/create_ros_image.Dockerfile.em
 # generated on 2017-01-27 02:33:52 +0000
-#FROM osrf/ros:indigo-desktop
+#FROM osrf/ros:kinetic-desktop
 
 # install ros packages
 RUN apt-get update && apt-get install -y \
-    ros-indigo-desktop-full=1.1.6-0* \
+    ros-kinetic-desktop-full=1.3.2-0* \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -87,25 +98,20 @@ RUN apt-get update && apt-get install -y \
 # Section 2: Custom
 #
 # Everthing above this point gives us a clean base image, and everything below
-# is voyage specific setup.
+# is New Eagle specific setup.
 
-######
-# First: do the rest of the cuda install (and apsell first, because it screws
-# up dependencies for some reason)
-##RUN apt-get update && apt-get install -y aspell
-
+##    ros-kinetic-qglv-toolkit \
 # ROS dependencies
 RUN apt-get update && apt-get -y install \
-    ros-indigo-desktop-full \
-    ros-indigo-nmea-msgs \
-    ros-indigo-nmea-navsat-driver \
-    ros-indigo-sound-play \
-    ros-indigo-jsk-visualization \
-    ros-indigo-qglv-toolkit \
-    ros-indigo-joy \
-    ros-indigo-libsensors-monitor \
-    ros-indigo-can-msgs \
-    ros-indigo-um7 \
+    ros-kinetic-desktop-full \
+    ros-kinetic-nmea-msgs \
+    ros-kinetic-nmea-navsat-driver \
+    ros-kinetic-sound-play \
+    ros-kinetic-jsk-visualization \
+    ros-kinetic-joy \
+    ros-kinetic-libsensors-monitor \
+    ros-kinetic-can-msgs \
+    ros-kinetic-um7 \
     python-rosinstall \
     python-rosinstall-generator \
     libnlopt-dev \
@@ -145,13 +151,14 @@ RUN apt-get update && apt-get --no-install-recommends -y install \
     git \
     ssh \
     vim \
-    libgeos-dev \
-    libgeographiclib-dev \
-    libspatialindex-dev \
-    libcanberra-gtk-module \
     gnome-terminal \
     usbutils \
     && rm -rf /var/lib/apt/lists/*
+
+##    libgeos-dev \
+##    libgeographiclib-dev \
+##    libspatialindex-dev \
+##    libcanberra-gtk-module \
 
 # Cython must be installed as a seperate layer
 RUN easy_install pip && pip install cython==0.25.2
@@ -191,7 +198,7 @@ RUN rosdep update
 
 ###
 # Setup .bashrc
-RUN echo "source /opt/ros/indigo/setup.bash" >> /home/$USERNAME/.bashrc
+RUN echo "source /opt/ros/kinetic/setup.bash" >> /home/$USERNAME/.bashrc
 RUN echo "source /home/$USERNAME/pacifica-dbw-ros/devel/setup.bash" >> /home/$USERNAME/.bashrc
 #Fix for autoware qt and X server errors
 RUN echo "export QT_X11_NO_MITSHM=1" >> /home/$USERNAME/.bashrc

@@ -1,4 +1,4 @@
-# voyage/ros - This is the base ROS runtime image.
+# neweagle/docker-ros - This is the base ROS runtime image.
 
 ######
 # Section 1: "Includes"
@@ -87,7 +87,7 @@ RUN apt-get update && apt-get install -y \
 # Section 2: Custom
 #
 # Everthing above this point gives us a clean base image, and everything below
-# is voyage specific setup.
+# is new eagle specific setup.
 
 ######
 # First: do the rest of the cuda install (and apsell first, because it screws
