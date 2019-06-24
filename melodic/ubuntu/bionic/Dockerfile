@@ -9,9 +9,9 @@
 # DO NOT modify, edit, etc unless updating to a newer version
 
 ######################################################################
-#INCLUDE https://github.com/osrf/docker_images/blob/master/ros/kinetic/kinetic-ros-core/Dockerfile
+#INCLUDE https://github.com/osrf/docker_images/blob/master/ros/melodic/melodic-ros-core/Dockerfile
 ######################################################################
-# This is an auto generated Dockerfile for ros:kinetic-ros-core
+# This is an auto generated Dockerfile for ros:melodic-ros-core
 # generated from templates/docker_images/create_ros_core_image.Dockerfile.em
 # generated on 2017-01-27 02:33:52 +0000
 FROM ubuntu:bionic
@@ -37,38 +37,38 @@ RUN apt-get update && apt-get install --no-install-recommends -y python-rosdep p
 RUN rosdep init && rosdep update
 
 # install ros packages
-ENV ROS_DISTRO kinetic
+ENV ROS_DISTRO melodic
 RUN apt-get update && apt-get install -y ros-melodic-ros-core=1.4.1-0* && rm -rf /var/lib/apt/lists/*
 
 ######################################################################
-# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/kinetic/kinetic-ros-base/Dockerfile
+# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/melodic/melodic-ros-base/Dockerfile
 ######################################################################
-# This is an auto generated Dockerfile for ros:kinetic-ros-base
+# This is an auto generated Dockerfile for ros:melodic-ros-base
 # generated from templates/docker_images/create_ros_image.Dockerfile.em
 # generated on 2017-01-27 02:33:52 +0000
-##FROM ros:kinetic-ros-core
+##FROM ros:melodic-ros-core
 
 # install ros packages
 RUN apt-get update && apt-get install -y ros-melodic-ros-base=1.4.1-0* && rm -rf /var/lib/apt/lists/*
 
 ######################################################################
-# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/kinetic/kinetic-desktop/Dockerfile
+# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/melodic/melodic-desktop/Dockerfile
 ######################################################################
-# This is an auto generated Dockerfile for ros:kinetic-desktop
+# This is an auto generated Dockerfile for ros:melodic-desktop
 # generated from templates/docker_images/create_ros_image.Dockerfile.em
 # generated on 2017-01-27 02:33:52 +0000
-##FROM ros:kinetic-ros-base
+##FROM ros:melodic-ros-base
 
 # install ros packages
 RUN apt-get update && apt-get install -y ros-melodic-desktop=1.4.1-0* && rm -rf /var/lib/apt/lists/*
 
 #####################################################################
-# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/kinetic/kinetic-desktop-full/Dockerfile
+# INCLUDE https://github.com/osrf/docker_images/blob/master/ros/melodic/melodic-desktop-full/Dockerfile
 #####################################################################
-# This is an auto generated Dockerfile for ros:kinetic-desktop-full
+# This is an auto generated Dockerfile for ros:melodic-desktop-full
 # generated from templates/docker_images/create_ros_image.Dockerfile.em
 # generated on 2017-01-27 02:33:52 +0000
-#FROM osrf/ros:kinetic-desktop
+#FROM osrf/ros:melodic-desktop
 
 # install ros packages
 RUN apt-get update && apt-get install -y ros-melodic-desktop-full=1.4.1-0* && rm -rf /var/lib/apt/lists/*
@@ -79,7 +79,7 @@ RUN apt-get update && apt-get install -y ros-melodic-desktop-full=1.4.1-0* && rm
 # Everthing above this point gives us a clean base image, and everything below
 # is New Eagle specific setup.
 
-##    ros-kinetic-qglv-toolkit \
+##    ros-melodic-qglv-toolkit \
 # ROS dependencies
 RUN apt-get update && apt-get -y install ros-melodic-desktop-full ros-melodic-nmea-msgs ros-melodic-nmea-navsat-driver ros-melodic-sound-play ros-melodic-jsk-visualization ros-melodic-joy ros-melodic-can-msgs ros-melodic-um7 python-rosinstall python-rosinstall-generator libnlopt-dev freeglut3-dev qtbase5-dev libqt5opengl5-dev libssh2-1-dev libarmadillo-dev libpcap-dev libgl1-mesa-dev python-bson python-bson-ext python-openssl python-pam python-twisted-bin python-twisted-core python-zope.interface python3-apt python3-pycurl python3-gi python-setuptools python-pip gir1.2-gtk-3.0 python3-aptdaemon.gtk3widgets linux-headers-generic software-properties-common ubuntu-drivers-common libgtk2-perl dkms && rm -rf /var/lib/apt/lists/*
 
@@ -88,15 +88,18 @@ RUN apt-get update && apt-get --no-install-recommends -y install libhdf5-dev pyt
 # Cython must be installed as a seperate layer
 RUN pip install cython==0.25.2
 
-# local packages
-COPY ./debs /debs
-RUN dpkg -i /debs/libsbp_2.2.12-1_amd64.deb
-RUN dpkg -i /debs/linux-can.deb
-
 # AutonomouStuff Packages and dependencies
-RUN dpkg -i /debs/python3-software-properties_0.96.20.8_all.deb
-RUN dpkg -i /debs/software-properties-gtk_0.96.20.8_all.deb
-RUN dpkg -i /debs/linuxcan-dkms_5.26.679-0ubuntu0~ppa1_amd64.deb
+RUN apt-get update && apt-get -y install apt-transport-https && rm -rf /var/lib/apt/lists/* 
+RUN echo "deb [trusted=yes] https://s3.amazonaws.com/autonomoustuff-repo/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/autonomoustuff-public.list
+RUN echo "yaml https://s3.amazonaws.com/autonomoustuff-repo/autonomoustuff-public-$ROS_DISTRO.yaml $ROS_DISTRO" > /etc/ros/rosdep/sources.list.d/40-autonomoustuff-public-'$ROS_DISTRO'.list
+RUN apt-get update && apt-get -y install ros-$ROS_DISTRO-kvaser-interface && rm -rf /var/lib/apt/lists/*
+
+RUN apt-add-repository ppa:jwhitleyastuff/kvaser-linux
+
+RUN apt-get update -qq && apt-get install -y -q \
+    kvaser-canlib-dev \
+    kvaser-drivers-dkms \
+    && rm -rf /var/lib/apt/lists/*
 
 ######
 # Add basic user
@@ -118,10 +121,6 @@ RUN echo "source /opt/ros/melodic/setup.bash" >> /home/$USERNAME/.bashrc
 RUN echo "source /home/$USERNAME/pacifica-dbw-ros/devel/setup.bash" >> /home/$USERNAME/.bashrc
 #Fix for autoware qt and X server errors
 RUN echo "export QT_X11_NO_MITSHM=1" >> /home/$USERNAME/.bashrc
-
-# setup rviz defaults
-RUN mkdir /home/$USERNAME/.rviz
-RUN ln -s /home/$USERNAME/pacifica-dbw-ros/rviz/default.rviz /home/$USERNAME/.rviz/default.rviz
 
 WORKDIR /home/user/pacifica-dbw-ros
 
